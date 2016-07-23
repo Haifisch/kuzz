@@ -35,21 +35,18 @@ the generation of a class list and an automatic constructor.
 #import <IOKit/IOKitLib.h>
 #import <substrate.h>
 #import <Foundation/Foundation.h>
-#define reinterpret_cast_mach_vm_address_t(p) \
-    ((mach_vm_address_t) (uintptr_t) p)
 
-kern_return_t
-old_IOConnectCallMethod(
-	mach_port_t	 connection,		// In
-	uint32_t	 selector,		// In
-	const uint64_t	*input,			// In
-	uint32_t	 inputCnt,		// In
-	const void	*inputStruct,		// In
-	size_t		 inputStructCnt,	// In
-	uint64_t	*output,		// Out
-	uint32_t	*outputCnt,		// In/Out
-	void		*outputStruct,		// Out
-	size_t		*outputStructCntP);
+kern_return_t old_IOConnectCallMethod(
+	mach_port_t connection,
+  uint32_t    selector,
+  uint64_t   *input,
+  uint32_t    inputCnt,
+  void       *inputStruct,
+  size_t      inputStructCnt,
+  uint64_t   *output,
+  uint32_t   *outputCnt,
+  void       *outputStruct,
+  size_t     *outputStructCntP);
 
 int maybe(){
   static int seeded = 0;
@@ -90,14 +87,15 @@ kern_return_t fake_IOConnectCallMethod(
   void       *outputStruct,
   size_t     *outputStructCntP)
 {
+	/*
 	// uint64_t hax = 0x4141414141;
-	if (&maybe)
+	if ((selector != 16) && (((arc4random() % 2000) % 7) == 0))
 	{
 		NSLog(@"fake_IOConnectCallMethod called, we up in this bitch... flipping #1\n");
 		flip_bit(input, sizeof(input) * inputCnt);
 		//ret = randomize_string((unsigned char*)input, sizeof(input) * inputCnt, 25);
 	}
-	if (&maybe)
+	if ((selector != 16) && (((arc4random() % 2000) % 7) == 0))
 	{
 		NSLog(@"fake_IOConnectCallMethod called, we up in this bitch... flipping #2\n");
 		flip_bit(inputStruct, inputStructCnt);
@@ -108,9 +106,9 @@ kern_return_t fake_IOConnectCallMethod(
 	[caseData addObject:@"testcase"];
 	[caseData addObject:@(selector)];
 
-	NSLog(@"TESTCASE::: %@", caseData);
-
-	return IOConnectCallMethod(
+	//NSLog(@"TESTCASE::: %@", caseData);
+	*/
+	return old_IOConnectCallMethod(
 		connection,
 		selector,
 		input,
@@ -125,6 +123,6 @@ kern_return_t fake_IOConnectCallMethod(
 
 
 %ctor {
-	MSHookFunction((int *)&IOConnectCallMethod, (int *)&fake_IOConnectCallMethod);
+	MSHookFunction((int *)&IOConnectCallMethod, (int *)&fake_IOConnectCallMethod, (void **)old_IOConnectCallMethod);
       
 }
