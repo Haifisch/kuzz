@@ -36,18 +36,6 @@ the generation of a class list and an automatic constructor.
 #import <substrate.h>
 #import <Foundation/Foundation.h>
 
-kern_return_t old_IOConnectCallMethod(
-	mach_port_t connection,
-  uint32_t    selector,
-  uint64_t   *input,
-  uint32_t    inputCnt,
-  void       *inputStruct,
-  size_t      inputStructCnt,
-  uint64_t   *output,
-  uint32_t   *outputCnt,
-  void       *outputStruct,
-  size_t     *outputStructCntP);
-
 int maybe(){
   static int seeded = 0;
   if(!seeded){
@@ -75,6 +63,18 @@ void flip_bit(void* buf, size_t len){
   ((uint8_t*)buf)[offset] ^= (0x01 << (rand() % 8));
 }
 
+static kern_return_t (*old_IOConnectCallMethod)(
+	mach_port_t connection,
+  uint32_t    selector,
+  uint64_t   *input,
+  uint32_t    inputCnt,
+  void       *inputStruct,
+  size_t      inputStructCnt,
+  uint64_t   *output,
+  uint32_t   *outputCnt,
+  void       *outputStruct,
+  size_t     *outputStructCntP);
+
 kern_return_t fake_IOConnectCallMethod(
   mach_port_t connection,
   uint32_t    selector,
@@ -87,27 +87,31 @@ kern_return_t fake_IOConnectCallMethod(
   void       *outputStruct,
   size_t     *outputStructCntP)
 {
-	/*
-	// uint64_t hax = 0x4141414141;
-	if ((selector != 16) && (((arc4random() % 2000) % 7) == 0))
+	bool didFuzz = 0;
+	if (((arc4random() % 2000) % 7) == 0)
 	{
+		didFuzz = 1;
 		NSLog(@"fake_IOConnectCallMethod called, we up in this bitch... flipping #1\n");
 		flip_bit(input, sizeof(input) * inputCnt);
 		//ret = randomize_string((unsigned char*)input, sizeof(input) * inputCnt, 25);
 	}
-	if ((selector != 16) && (((arc4random() % 2000) % 7) == 0))
+	if (((arc4random() % 2000) % 7) == 0)
 	{
+		didFuzz = 1;
 		NSLog(@"fake_IOConnectCallMethod called, we up in this bitch... flipping #2\n");
 		flip_bit(inputStruct, inputStructCnt);
 		//ret = randomize_string((unsigned char*)inputStruct, inputStructCnt, 25);
 	}
 
-	NSMutableArray *caseData = [[NSMutableArray alloc] init];
-	[caseData addObject:@"testcase"];
-	[caseData addObject:@(selector)];
+	if (didFuzz)
+	{
+		NSMutableArray *caseData = [[NSMutableArray alloc] init];
+		[caseData addObject:@"testcase"];
+		[caseData addObject:@(selector)];
 
-	//NSLog(@"TESTCASE::: %@", caseData);
-	*/
+		NSLog(@"TESTCASE::: %@", caseData);
+	}
+	
 	return old_IOConnectCallMethod(
 		connection,
 		selector,
@@ -123,6 +127,6 @@ kern_return_t fake_IOConnectCallMethod(
 
 
 %ctor {
-	MSHookFunction((int *)&IOConnectCallMethod, (int *)&fake_IOConnectCallMethod, (void **)old_IOConnectCallMethod);
+	MSHookFunction((int *)&IOConnectCallMethod, (int *)&fake_IOConnectCallMethod, (void **)&old_IOConnectCallMethod);
       
 }
