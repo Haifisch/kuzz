@@ -1,36 +1,9 @@
-/* How to Hook with Logos
-Hooks are written with syntax similar to that of an Objective-C @implementation.
-You don't need to #include <substrate.h>, it will be done automatically, as will
-the generation of a class list and an automatic constructor.
+/* 
+	Uh, greetz to Ian Beer of ProjectZero n shit.
+	http://googleprojectzero.blogspot.com/2014/11/pwn4fun-spring-2014-safari-part-ii.html
+	most of this code is his, i just wanted it to be injected into all of the things on my ipad so thanks to him
 
-%hook ClassName
-
-// Hooking a class method
-+ (id)sharedInstance {
-	return %orig;
-}
-
-// Hooking an instance method with an argument.
-- (void)messageName:(int)argument {
-	%log; // Write a message about this call, including its class, name and arguments, to the system log.
-
-	%orig; // Call through to the original function with its original arguments.
-	%orig(nil); // Call through to the original function with a custom argument.
-
-	// If you use %orig(), you MUST supply all arguments (except for self and _cmd, the automatically generated ones.)
-}
-
-// Hooking an instance method with no arguments.
-- (id)noArguments {
-	%log;
-	id awesome = %orig;
-	[awesome doSomethingElse];
-
-	return awesome;
-}
-
-// Always make sure you clean up after yourself; Not doing so could have grave consequences!
-%end
+	greets to dat boi ethan & sn0w for help
 */
 #import <IOKit/IOKitLib.h>
 #import <substrate.h>
@@ -43,17 +16,6 @@ int maybe(){
     seeded = 1;
   }
   return !(rand() % 100);
-}
-
-unsigned int random_int() {
-	unsigned int i = 0;
-    unsigned int v = 0;
-    unsigned char buffer[4];
-	for (i = 0; i < 4; i++) {
-		buffer[i] = rand() & 0xFF;
-	}
-    v = *(unsigned int*) buffer;
-	return v;
 }
 
 void flip_bit(void* buf, size_t len){
@@ -93,14 +55,12 @@ kern_return_t fake_IOConnectCallMethod(
 		didFuzz = 1;
 		NSLog(@"fake_IOConnectCallMethod called, we up in this bitch... flipping #1\n");
 		flip_bit(input, sizeof(input) * inputCnt);
-		//ret = randomize_string((unsigned char*)input, sizeof(input) * inputCnt, 25);
 	}
 	if (((arc4random() % 2000) % 7) == 0)
 	{
 		didFuzz = 1;
 		NSLog(@"fake_IOConnectCallMethod called, we up in this bitch... flipping #2\n");
 		flip_bit(inputStruct, inputStructCnt);
-		//ret = randomize_string((unsigned char*)inputStruct, inputStructCnt, 25);
 	}
 
 	if (didFuzz)
@@ -109,7 +69,7 @@ kern_return_t fake_IOConnectCallMethod(
 		[caseData addObject:@"testcase"];
 		[caseData addObject:@(selector)];
 
-		NSLog(@"TESTCASE::: %@", caseData);
+		NSLog(@"TESTCASE ::: %@", caseData);
 	}
 	
 	return old_IOConnectCallMethod(
@@ -128,5 +88,4 @@ kern_return_t fake_IOConnectCallMethod(
 
 %ctor {
 	MSHookFunction((int *)&IOConnectCallMethod, (int *)&fake_IOConnectCallMethod, (void **)&old_IOConnectCallMethod);
-      
 }

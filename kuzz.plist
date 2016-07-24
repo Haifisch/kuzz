@@ -1,4 +1,4 @@
 Filter = {
-  Bundles = (com.apple.IOKit);
+  Bundles = ( "com.apple.IOSurface", "com.apple.IOMobileFramebuffer" );
   Mode = "Any";
 };
