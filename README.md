@@ -10,3 +10,8 @@ change the MS filters in kuzz.plist to control what you're fuzzing, by default i
 by default you will fuzz all the things. 
 
 feel free to fuzz away. 
+
+
+i see a few stars now, if anyone has suggestions to improve please feell free to contact me, submit an issue, or create a pull request. 
+thanks,
+haifisch
